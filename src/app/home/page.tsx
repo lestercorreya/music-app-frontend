@@ -14,9 +14,13 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Button } from '@mui/material';
-import navItems from './components/listItems';
 import { SubscriptionCard, QueryCard } from './components/card';
 import { Grid, TextField } from '@mui/material';
+import { useTheme } from '@mui/material'
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import { Search, DoneAll } from '@mui/icons-material';
 
 const drawerWidth: number = 240;
 
@@ -69,15 +73,24 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 );
 
 export default function Dashboard() {
+  const theme = useTheme()
   const [open, setOpen] = useState(true);
+  const [selectedView, setSelectedView] = useState("query")
+
   const toggleDrawer = () => {
     setOpen(!open);
   };
-  const [selectedView, setSelectedView] = useState("query")
-
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   }
+  const handleNavChange = (view: string) => {
+    setSelectedView(view)
+  }
+
+  const getNavStyles = (itemName: string): React.CSSProperties => ({
+    backgroundColor: selectedView === itemName ? theme.palette.primary.main : "inherit",
+    color: selectedView === itemName ? "white" : "inherit",
+  });
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -127,7 +140,18 @@ export default function Dashboard() {
         </Toolbar>
         <Divider />
         <List component="nav">
-          {navItems}
+          <ListItemButton style={getNavStyles("subscriptions")} onClick={() => handleNavChange("subscriptions")}>
+            <ListItemIcon style={{ color: "inherit" }}>
+              <DoneAll />
+            </ListItemIcon>
+            <ListItemText primary="Subscriptions" />
+          </ListItemButton>
+          <ListItemButton style={getNavStyles("query")} onClick={() => handleNavChange("query")}>
+            <ListItemIcon style={{ color: "inherit" }}>
+              <Search />
+            </ListItemIcon>
+            <ListItemText primary="Query" />
+          </ListItemButton>
         </List>
       </Drawer>
       <Box
@@ -148,12 +172,10 @@ export default function Dashboard() {
           </Grid>
         </Grid >}
         {selectedView === "query" &&
-
           <Grid container spacing={4} padding={4}>
             <Grid item xs={3}>
               <Box component="form" noValidate onSubmit={handleSearch}>
                 <TextField
-                  margin="normal"
                   required
                   fullWidth
                   label="Search Music"
@@ -164,16 +186,17 @@ export default function Dashboard() {
                   type="submit"
                   fullWidth
                   variant="contained"
+                  sx={{ mt: 2 }}
                 >
                   Search
                 </Button>
               </Box>
             </Grid>
             <Grid item xs={3}>
-              <SubscriptionCard />
+              <QueryCard />
             </Grid>
             <Grid item xs={3}>
-              <SubscriptionCard />
+              <QueryCard />
             </Grid>
           </Grid >
         }
