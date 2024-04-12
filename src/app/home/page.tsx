@@ -1,26 +1,9 @@
 'use client'
 
 import React, { useState } from 'react';
-import { styled } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { Button } from '@mui/material';
+import { Box, styled, CssBaseline, Drawer as MuiDrawer, AppBar as MuiAppBar, AppBarProps as MuiAppBarProps, Toolbar, List, Typography, Divider, IconButton, Button, Grid, TextField, useTheme, ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
+import { Search, DoneAll, ChevronLeft, Menu } from '@mui/icons-material'
 import { SubscriptionCard, QueryCard } from './components/card';
-import { Grid, TextField } from '@mui/material';
-import { useTheme } from '@mui/material'
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { Search, DoneAll } from '@mui/icons-material';
 
 const drawerWidth: number = 240;
 
@@ -111,7 +94,7 @@ export default function Dashboard() {
               ...(open && { display: 'none' }),
             }}
           >
-            <MenuIcon />
+            <Menu />
           </IconButton>
           <Typography
             component="h1"
@@ -135,7 +118,7 @@ export default function Dashboard() {
           }}
         >
           <IconButton onClick={toggleDrawer}>
-            <ChevronLeftIcon />
+            <ChevronLeft />
           </IconButton>
         </Toolbar>
         <Divider />
