@@ -5,7 +5,7 @@ import { Typography, Avatar, Button, CssBaseline, TextField, Paper, Box, Grid, I
 import { LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material'
 import Link from 'next/link';
 
-export default function LogInPage() {
+export default function SignUpPage() {
 
   const [showPassword, setShowPassword] = useState(false)
 
@@ -53,7 +53,7 @@ export default function LogInPage() {
             <LockOutlined />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Log In
+            Sign Up
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
@@ -64,6 +64,16 @@ export default function LogInPage() {
               label="Email Address"
               name="email"
               autoComplete="email"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="name"
               autoFocus
             />
             <TextField
@@ -95,12 +105,12 @@ export default function LogInPage() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Log In
+              Sign Up
             </Button>
             <Grid container>
               <Grid item>
-                <Link href="/signup">
-                  {"Don't have an account? Sign Up"}
+                <Link href="/">
+                  {"Already have an account? Log In"}
                 </Link>
               </Grid>
             </Grid>
