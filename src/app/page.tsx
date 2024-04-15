@@ -1,21 +1,38 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Typography, Avatar, Button, CssBaseline, TextField, Paper, Box, Grid, InputAdornment, IconButton } from '@mui/material';
+import { Typography, Avatar, Button, CssBaseline, TextField, Paper, Box, Grid, InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
 import { LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material'
 import Link from 'next/link';
+import axios from 'axios'
+import { useRouter } from 'next/navigation';
 
 export default function LogInPage() {
 
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+  const [openAlert, setOpenAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+
+    const requestData = {
+      email: data.get("email"),
+      password: data.get("password")
+    }
+
+    axios.post("https://cq2evmczs1.execute-api.ap-southeast-2.amazonaws.com/Prod/loginUser", requestData)
+      .then((res) => {
+        sessionStorage.setItem("token", res.data.token)
+        router.push("/home")
+      })
+      .catch((err) => {
+        setOpenAlert(true)
+        setAlertMessage(err.response.data.message)
+        console.log(err)
+      })
   };
 
   const handlePasswordVisibilityClick = () => {
@@ -107,6 +124,16 @@ export default function LogInPage() {
           </Box>
         </Box>
       </Grid>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={() => setOpenAlert(false)}>
+        <Alert
+          onClose={() => setOpenAlert(false)}
+          severity="info"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Grid>
   );
 }

@@ -1,21 +1,43 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Typography, Avatar, Button, CssBaseline, TextField, Paper, Box, Grid, InputAdornment, IconButton } from '@mui/material';
+import { Typography, Avatar, Button, CssBaseline, TextField, Paper, Box, Grid, InputAdornment, IconButton, Alert, Snackbar } from '@mui/material';
 import { LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material'
 import Link from 'next/link';
+import axios from 'axios'
+import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
 
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+  const [openAlert, setOpenAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+
+    const requestData = {
+      email: data.get("email"),
+      password: data.get("password"),
+      username: data.get("username")
+    }
+
+    axios.post("https://cq2evmczs1.execute-api.ap-southeast-2.amazonaws.com/Prod/addUser", requestData)
+      .then((res) => {
+        setOpenAlert(true)
+        setAlertMessage(res.data.message)
+
+        setTimeout(() => {
+          router.push("/")
+        }, 500)
+      })
+      .catch((err) => {
+        setOpenAlert(true)
+        setAlertMessage(err.response.data.message)
+        console.log(err)
+      })
   };
 
   const handlePasswordVisibilityClick = () => {
@@ -53,7 +75,7 @@ export default function SignUpPage() {
             <LockOutlined />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign Up
+            Register
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
@@ -74,7 +96,6 @@ export default function SignUpPage() {
               label="Username"
               name="username"
               autoComplete="name"
-              autoFocus
             />
             <TextField
               margin="normal"
@@ -105,7 +126,7 @@ export default function SignUpPage() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              Register
             </Button>
             <Grid container>
               <Grid item>
@@ -117,6 +138,16 @@ export default function SignUpPage() {
           </Box>
         </Box>
       </Grid>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={() => setOpenAlert(false)}>
+        <Alert
+          onClose={() => setOpenAlert(false)}
+          severity="info"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Grid>
   );
 }

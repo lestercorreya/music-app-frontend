@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState } from 'react';
-import { Box, styled, CssBaseline, Drawer as MuiDrawer, AppBar as MuiAppBar, AppBarProps as MuiAppBarProps, Toolbar, List, Typography, Divider, IconButton, Button, Grid, TextField, useTheme, ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
+import React, { useEffect, useState } from 'react';
+import { Box, Alert, Snackbar, styled, CssBaseline, Drawer as MuiDrawer, AppBar as MuiAppBar, AppBarProps as MuiAppBarProps, Toolbar, List, Typography, Divider, IconButton, Button, Grid, TextField, useTheme, ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
 import { Search, DoneAll, ChevronLeft, Menu } from '@mui/icons-material'
 import { SubscriptionCard, QueryCard } from './components/card';
+import axios from 'axios'
+import { useRouter } from 'next/navigation';
 
 const drawerWidth: number = 240;
 
@@ -57,14 +59,83 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function Dashboard() {
   const theme = useTheme()
+  const router = useRouter()
   const [open, setOpen] = useState(true);
+  const [openAlert, setOpenAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
   const [selectedView, setSelectedView] = useState("query")
+
+  let subscribedDict = new Map<string, boolean>();
+
+  interface Music {
+    title: string;
+    img_url: string;
+    year: number;
+    artist: string;
+  }
+  const [subscriptions, setSubscriptions] = useState<Music[]>([])
+  const [music, setMusic] = useState<Music[]>([]);
+  const [filteredMusic, setFilteredMusic] = useState<Music[]>([])
+  const [user, setUser] = useState({ username: "", email: "" })
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("token")) router.push("/")
+
+    axios.post("https://cq2evmczs1.execute-api.ap-southeast-2.amazonaws.com/Prod/getUser", { token: sessionStorage.getItem("token") })
+      .then((res) => {
+        setUser(res.data.user)
+
+        axios.post("https://cq2evmczs1.execute-api.ap-southeast-2.amazonaws.com/Prod/getSubscriptionsForUser", { email: res.data.user.email })
+          .then((res) => {
+            setSubscriptions(res.data.subscriptions)
+
+            res.data.subscriptions.forEach((subscription: Record<string, string>) => {
+              subscribedDict.set(subscription.title, true)
+            })
+          })
+          .catch((err) => {
+            setOpenAlert(true)
+            setAlertMessage(err.response.data.message)
+            console.log(err)
+          })
+
+        axios.get("https://cq2evmczs1.execute-api.ap-southeast-2.amazonaws.com/Prod/getMusic")
+          .then((res) => {
+            setMusic(res.data.music)
+            setFilteredMusic(res.data.music)
+          })
+          .catch((err) => {
+            setOpenAlert(true)
+            setAlertMessage(err.response.data.message)
+            console.log(err)
+          })
+      })
+      .catch(() => {
+        router.push("/")
+      })
+  }, [])
 
   const toggleDrawer = () => {
     setOpen(!open);
   };
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const data = new FormData(event.currentTarget);
+
+    let title = data.get("title")
+    title = title ? title.toString() : ""
+    let year = data.get("year")
+    year = year ? year.toString() : ""
+    let artist = data.get("artist")
+    artist = artist ? artist.toString() : ""
+
+    const filtered = music.filter(eachMusic => {
+      return eachMusic.title.toLowerCase().includes(title.toLowerCase()) && eachMusic.year.toString().includes(year) && eachMusic.artist.toLowerCase().includes(artist.toLowerCase())
+    })
+
+    setFilteredMusic(filtered)
+
   }
   const handleNavChange = (view: string) => {
     setSelectedView(view)
@@ -103,7 +174,7 @@ export default function Dashboard() {
             noWrap
             sx={{ flexGrow: 1 }}
           >
-            Welcome, Lester Correya
+            Welcome, {user.username}
           </Typography>
           <Button variant="contained" color='error'>Log Out</Button>
         </Toolbar>
@@ -146,44 +217,96 @@ export default function Dashboard() {
         }}
       >
         <Toolbar />
-        {selectedView === "subscriptions" && <Grid container spacing={4} padding={4}>
-          <Grid item xs={3}>
-            <SubscriptionCard />
-          </Grid>
-          <Grid item xs={3}>
-            <SubscriptionCard />
-          </Grid>
-        </Grid >}
+        {selectedView === "subscriptions" &&
+          <>
+            {subscriptions.length === 0 && <Typography
+              component="h1"
+              variant="h6"
+              color="inherit"
+              sx={{ m: 4 }}
+            >
+              No Subscriptions
+            </Typography>}
+            {subscriptions.length !== 0 && <Grid container spacing={4} padding={4}>
+              {subscriptions.map(subscription => {
+                return (
+                  <Grid item xs={4}>
+                    <SubscriptionCard title={subscription.title} img={subscription.img_url} year={subscription.year} artist={subscription.artist} />
+                  </Grid>
+                )
+              })}
+            </Grid >}
+          </>
+        }
         {selectedView === "query" &&
-          <Grid container spacing={4} padding={4}>
-            <Grid item xs={3}>
-              <Box component="form" noValidate onSubmit={handleSearch}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Search Music"
-                  name="music"
-                  autoFocus
-                />
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 2 }}
-                >
-                  Search
-                </Button>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <QueryCard />
-            </Grid>
-            <Grid item xs={3}>
-              <QueryCard />
-            </Grid>
-          </Grid >
+          <>
+            <Box component="form" noValidate onSubmit={handleSearch}>
+              <Grid container spacing={4} padding={4}>
+                <Grid item xs={3}>
+                  <TextField
+                    fullWidth
+                    label="Search By Title"
+                    name="title"
+                    autoFocus
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <TextField
+                    fullWidth
+                    label="Search By Year"
+                    name="year"
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <TextField
+                    fullWidth
+                    label="Search By Artist"
+                    name="artist"
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mt: 1 }}
+                  >
+                    Search
+                  </Button>
+                </Grid>
+              </Grid >
+            </Box>
+            {filteredMusic.length === 0 && <Typography
+              component="h1"
+              variant="h6"
+              color="inherit"
+              sx={{ m: 4 }}
+            >
+              No result is retrieved. Please query again
+            </Typography>}
+            {filteredMusic.length !== 0 &&
+              <Grid container spacing={4} padding={4}>
+                {filteredMusic.map(eachMusic => {
+                  return (
+                    <Grid item xs={4}>
+                      <QueryCard title={eachMusic.title} img={eachMusic.img_url} year={eachMusic.year} artist={eachMusic.artist} subscribed={subscribedDict.get(eachMusic.title) || false} />
+                    </Grid>
+                  )
+                })}
+              </Grid>}
+          </>
         }
       </Box>
-    </Box>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={() => setOpenAlert(false)}>
+        <Alert
+          onClose={() => setOpenAlert(false)}
+          severity="info"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
+    </Box >
   );
 }
