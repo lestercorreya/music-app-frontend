@@ -7,6 +7,7 @@ interface SubscriptionCardProps {
   year: number;
   artist: string;
   img: string;
+  handleRemove: (title: string) => void
 }
 
 interface QueryCardProps {
@@ -15,9 +16,10 @@ interface QueryCardProps {
   artist: string;
   img: string;
   subscribed: boolean;
+  handleSubscribe: (title: string, artist: string, year: number, img: string) => void;
 }
 
-export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ title, artist, year, img }) => {
+export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ title, artist, year, img, handleRemove }) => {
   return (
     <Card sx={{ display: 'flex' }}>
       <CardMedia
@@ -39,7 +41,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ title, artis
           </Typography>
         </CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pb: 1 }}>
-          <Button variant="outlined" startIcon={<Delete />} size='small' color='error'>
+          <Button variant="outlined" startIcon={<Delete />} size='small' color='error' onClick={() => handleRemove(title)}>
             Remove
           </Button>
         </Box>
@@ -48,7 +50,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ title, artis
   );
 }
 
-export const QueryCard: React.FC<QueryCardProps> = ({ title, year, artist, img, subscribed }) => {
+export const QueryCard: React.FC<QueryCardProps> = ({ title, year, artist, img, subscribed, handleSubscribe }) => {
   return (
     <Card sx={{ display: 'flex' }}>
       <CardMedia
@@ -70,7 +72,7 @@ export const QueryCard: React.FC<QueryCardProps> = ({ title, year, artist, img, 
           </Typography>
         </CardContent>
         {!subscribed && <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pb: 1 }}>
-          <Button variant="outlined" startIcon={<Add />} size='small' color='error'>
+          <Button variant="outlined" startIcon={<Add />} size='small' color='error' onClick={() => handleSubscribe(title, artist, year, img)}>
             Subscribe
           </Button>
         </Box>}
